@@ -20,12 +20,16 @@ import json
 # *Fetch camera size
 # *Add Final functioality with x/y coords
 
+# When does the position need to be updated vs when does it shoot?
+
 model = YOLO("yolo11s.pt")
 cap = cv2.VideoCapture(0)
+width  = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 target_class = 'person'
 
 
-def junt(coords, screensize=0):
+def draw_coords(coords, screensize=0):
     # fig = figure_object, ax = axes_object for indexing subplots
     fig, ax = plt.subplots(dpi=100, figsize=(4.8, 6.4), )
     fig.set_facecolor("#000000")  # default is 255/ #FFFFFF which causes an error
@@ -48,25 +52,37 @@ def junt(coords, screensize=0):
 
 
 
-    """
+
     ax.axis('off')
     plt.subplots_adjust(left=0, right=1, top=1, bottom=0)  # remove padding
     plt.savefig("buffer.png", bbox_inches='tight', pad_inches=0)
-    plt.clf()
-    plt.show()
-    plt.close(fig)
+    #plt.clf()
+    #plt.show()
+    #plt.close(fig)
+
     """
     plt.show(block=False)
     plt.pause(0.5)
     plt.clf()
     plt.close(fig)
+    """
 
+def calc_center(x1, y1, x2, y2):
+    x = ( (x2-x1) /2) + x1
+    y = ( (y2-y1) /2) + y1
+    print(int(x),int(y))
+    return int(x),int(y)
+
+def adjust_turret(xy, screensize=0):
+    # move x stepper this much
+    # move y servo this much
+    return None
 
 while True:
     ret, frame = cap.read()
     if not ret:
         break
-    time.sleep(.5)
+    time.sleep(0)
     # Run inference
     results = model(frame)
 
@@ -96,11 +112,24 @@ while True:
                 "class": label,
                 "confidence": conf
             })
-            if conf > .7:
-                junt(coords=[x1, y1, x2, y2])
 
-        # Annotate the frame
-        frame = annotator.result()
+            # Annotate the frame
+            frame = annotator.result()
+            xy = calc_center(x1, y1, x2, y2)
+            cv2.circle(frame,
+                       xy,
+                       5,
+                       (0, 0, 255),
+                       -1)
+
+            if conf > .7:
+                draw_coords(coords=[x1, y1, x2, y2])
+
+            # adjust the turret
+            adjust_turret(xy,
+                          [width, height])
+
+        """Drawing a dot at the center"""
 
     # Show the frame
     cv2.imshow("Real-time Object Detection", frame)
