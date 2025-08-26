@@ -68,10 +68,10 @@ def draw_coords(coords, screensize=0):
     """
 
 def calc_center(x1, y1, x2, y2):
-    x = ( (x2-x1) /2) + x1
-    y = ( (y2-y1) /2) + y1
-    print(int(x),int(y))
-    return int(x),int(y)
+    x = (x1 + x2) // 2
+    y = (y1 + y2) // 2
+    print(x,y)
+    return x, y
 
 def adjust_turret(xy, screensize=0):
     # move x stepper this much
